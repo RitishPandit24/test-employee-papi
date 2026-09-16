@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3eda5304-53e1-490d-83bb-113b841b3f5b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="test-employee-papiFlow" doc:id="56c79976-f452-4f21-90ff-f191d73a9b1e" >
+		<http:listener doc:name="Listener" doc:id="084dbb12-d5a4-4641-9bef-11c2b0f19923" config-ref="HTTP_Listener_config" path="/getEmp">
+			<http:error-response >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="9dd86597-e68b-4638-bf15-65c2c75e0b00">
+				<ee:message>
+				</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
+			</ee:variables>
+			</ee:transform>
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="0efd0803-0d85-4ade-be9f-83e1ab28ff16" correlationId="#[vars.correlationId]">
+			<try doc:name="Try" doc:id="6676e680-6f7a-4041-92fc-012828a90821" >
+				<logger level="INFO" doc:name="Logger" doc:id="08cb57f0-cbc9-42b0-8f23-f2c75504feb5" message="test-employee-papiFlow Start" />
+				<http:request method="GET" doc:name="employee-sapi" doc:id="206a645c-71fd-49d7-86fc-98c83ac7178e" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]"/>
+				<ee:transform doc:name="Transform Message" doc:id="04848326-6ce8-4be7-acbc-69a8b0a5251f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="77495d93-c8cf-4266-b042-1c3c47465be2" message="Before wait : #[now()]" />
+				<ee:transform doc:name="Transform Message" doc:id="708e0162-2227-4ab3-a1d6-853dd166e989">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dw::Runtime
+---
+payload wait p("wait.time")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="d831ce04-2eaa-4d4d-935b-569e6b778916" message="After wait :  #[now()]" />
+				<logger level="INFO" doc:name="Logger" doc:id="50688114-1f7b-4644-8731-309a715a8dff" message="test-employee-papiFlow End" />
+				<error-handler >
+					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3a6fd1d3-b8e8-4230-a926-921f9743a20b">
+				<ee:transform doc:name="Transform Message" doc:id="beaa0303-9bc4-47ac-9d40-8def3c9909ab">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    event: "event: " ++ vars.correlationId,
+    message: error.description default error.detailedDescription,
+    orgId: p("anypoint.orgId") default "",
+    envId: p("anypoint.envId") default "",
+    timestamp: now(),
+    appId: app.name default ""
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="8a7a0501-6749-4531-b7ba-c140bf05d845" message="#[payload]" />
+			</on-error-propagate>
+				</error-handler>
+			</try>
+		</tracing:with-correlation-id>
+	</flow>
+</mule>

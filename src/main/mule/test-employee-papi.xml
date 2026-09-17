@@ -44,7 +44,7 @@ payload.data]]></ee:set-payload>
 output application/json
 import * from dw::Runtime
 ---
-payload wait p("wait.time")]]></ee:set-payload>
+payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 				<logger level="INFO" doc:name="Logger" doc:id="d831ce04-2eaa-4d4d-935b-569e6b778916" message="After wait :  #[now()]" />

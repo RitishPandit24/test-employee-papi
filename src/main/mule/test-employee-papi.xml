@@ -104,7 +104,7 @@ output application/json
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload.data filter($.id == vars.empid as Number)]]></ee:set-payload>
+payload.data filter($.id == ((vars.empid as String) default "0") as Number)]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</sub-flow>

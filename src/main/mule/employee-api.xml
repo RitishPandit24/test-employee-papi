@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+    <apikit:config name="employee-api-config" api="employee-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="employee-api-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <ee:transform doc:name="Transform Message" doc:id="574c3ecf-e13c-4a9d-b618-ef28209e7c88">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[%dw 2.0
+output application/json
+---
+uuid()]]></ee:set-variable>
+				<ee:set-variable variableName="empId" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.queryParams.employeeId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="c51d49a7-7aa3-4af6-b40f-3d84a08e40cd" correlationId="#[vars.correlationId]">
+			<logger level="INFO" doc:name="Logger" doc:id="e5c09649-da1b-4954-86fc-e9511b12b7a5" />
+			<apikit:router config-ref="employee-api-config" />
+			<logger level="INFO" doc:name="Logger" doc:id="d2545aeb-7dde-4c78-b5d1-f294f8358d2e" />
+		</tracing:with-correlation-id>
+		<error-handler>
+            <on-error-propagate type="ANY" enableNotifications="true" logException="true">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    event: "event: " ++ vars.correlationId,
+    message: error.description default error.detailedDescription,
+    orgId: p("anypoint.orgId") default "",
+    envId: p("anypoint.envId") default "",
+    timestamp: now(),
+    appId: app.name default ""
+}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\employee:employee-api-config">
+		<flow-ref doc:name="get-employee" doc:id="0fba0c19-1aa8-41f4-808c-9a4ce32b7a9e" name="get-employee-subFlow"/>
+    </flow>
+    <flow name="post:\employee:application\json:employee-api-config">
+		<flow-ref doc:name="post-employee" doc:id="f10c6a83-3e1d-4dbf-9339-53f5c8a167aa" name="post-employee-subFlow"/>
+    </flow>
+</mule>

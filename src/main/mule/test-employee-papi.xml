@@ -12,10 +12,10 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 	</http:listener-config>
 	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="0294fc5a-bec5-4807-84e7-c248790973be" />
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="e94634a0-369e-4e0a-aa82-ddb6a53620ab" config-ref="ObjectStore_Config" />
-	<flow name="test-employee-papiFlow" doc:id="56c79976-f452-4f21-90ff-f191d73a9b1e" >
+	<!-- [STUDIO:"test-employee-papiFlow"]<flow name="test-employee-papiFlow" doc:id="56c79976-f452-4f21-90ff-f191d73a9b1e" >
 		<http:listener doc:name="Listener" doc:id="084dbb12-d5a4-4641-9bef-11c2b0f19923" config-ref="HTTP_Listener_config" path="/getEmp">
 			<http:error-response >
-				<http:body ><![CDATA[#[payload]]]></http:body>
+				<http:body ><![CDATA[#[payload&#93;&#93;&#93;></http:body>
 			</http:error-response>
 		</http:listener>
 		<ee:transform doc:name="Transform Message" doc:id="9dd86597-e68b-4638-bf15-65c2c75e0b00">
@@ -24,27 +24,27 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 			<ee:variables >
 				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
 output application/json
----
-uuid()]]></ee:set-variable>
+&#45;&#45;-
+uuid()&#93;&#93;></ee:set-variable>
 			</ee:variables>
 			</ee:transform>
-		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="0efd0803-0d85-4ade-be9f-83e1ab28ff16" correlationId="#[vars.correlationId]">
+		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="0efd0803-0d85-4ade-be9f-83e1ab28ff16" correlationId="#[vars.correlationId&#93;">
 			<try doc:name="Try" doc:id="6676e680-6f7a-4041-92fc-012828a90821" >
 				<logger level="INFO" doc:name="Logger" doc:id="08cb57f0-cbc9-42b0-8f23-f2c75504feb5" message="test-employee-papiFlow Start" />
-				<http:request method="GET" doc:name="employee-sapi" doc:id="206a645c-71fd-49d7-86fc-98c83ac7178e" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]" target="empData"/>
+				<http:request method="GET" doc:name="employee-sapi" doc:id="206a645c-71fd-49d7-86fc-98c83ac7178e" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId&#93;" target="empData"/>
 				<os:retrieve doc:name="Retrieve" doc:id="9d361fe5-94f5-4581-bcff-fbd79dc7ee27" key="empDetails" objectStore="Object_store" target="empDetails">
 				</os:retrieve>
 				<ee:transform doc:name="Transform Message" doc:id="f2c902bf-a73a-416c-90e4-d422164bded9" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
----
-vars.empDetails //map($.id)]]></ee:set-payload>
+&#45;&#45;-
+vars.empDetails //map($.id)&#93;&#93;></ee:set-payload>
 					</ee:message>
 					<ee:variables >
 						<ee:set-variable variableName="store" ><![CDATA[%dw 2.0
 output application/json
----
+&#45;&#45;-
 [
     {
         "id": 1,
@@ -53,31 +53,31 @@ output application/json
         "employee_age": 61,
         "profile_image": ""
     }
-]]]></ee:set-variable>
+&#93;&#93;&#93;></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
-				<!-- [STUDIO:"Store"]<os:store doc:name="Store" doc:id="4487cfef-526c-4bac-9cc7-42011fc9d5b5" key="empDetails" objectStore="Object_store">
+				<os:store doc:name="Store" doc:id="4487cfef-526c-4bac-9cc7-42011fc9d5b5" key="empDetails" objectStore="Object_store">
 					<os:value ><![CDATA[#[vars.empData&#93;&#93;&#93;></os:value>
-				</os:store> [STUDIO] -->
+				</os:store>
 				<ee:transform doc:name="Transform Message" doc:id="04848326-6ce8-4be7-acbc-69a8b0a5251f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
-payload]]></ee:set-payload>
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="77495d93-c8cf-4266-b042-1c3c47465be2" message="Before wait : #[now()]" />
+				<logger level="INFO" doc:name="Logger" doc:id="77495d93-c8cf-4266-b042-1c3c47465be2" message="Before wait : #[now()&#93;" />
 				<ee:transform doc:name="Transform Message" doc:id="708e0162-2227-4ab3-a1d6-853dd166e989">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 import * from dw::Runtime
----
-payload]]></ee:set-payload>
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="d831ce04-2eaa-4d4d-935b-569e6b778916" message="After wait :  #[now()]" />
+				<logger level="INFO" doc:name="Logger" doc:id="d831ce04-2eaa-4d4d-935b-569e6b778916" message="After wait :  #[now()&#93;" />
 				<logger level="INFO" doc:name="Logger" doc:id="50688114-1f7b-4644-8731-309a715a8dff" message="test-employee-papiFlow End" />
 				<error-handler >
 					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="3a6fd1d3-b8e8-4230-a926-921f9743a20b">
@@ -85,7 +85,7 @@ payload]]></ee:set-payload>
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
+&#45;&#45;-
 {
     event: "event: " ++ vars.correlationId,
     message: error.description default error.detailedDescription,
@@ -93,13 +93,42 @@ output application/json
     envId: p("anypoint.envId") default "",
     timestamp: now(),
     appId: app.name default ""
-}]]></ee:set-payload>
+}&#93;&#93;></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<logger level="INFO" doc:name="Logger" doc:id="8a7a0501-6749-4531-b7ba-c140bf05d845" message="#[payload]" />
+				<logger level="INFO" doc:name="Logger" doc:id="8a7a0501-6749-4531-b7ba-c140bf05d845" message="#[payload&#93;" />
 			</on-error-propagate>
 				</error-handler>
 			</try>
 		</tracing:with-correlation-id>
-	</flow>
+	</flow> [STUDIO] -->
+	<sub-flow name="get-employee-subFlow" doc:id="54d7fc02-d39f-4faf-9fdd-7a199706a026" >
+		<try doc:name="Try" doc:id="762e4390-397c-4303-9bf1-cc3b5227521e" >
+			<http:request method="GET" doc:name="employee-sapi" doc:id="e1a1f828-d19d-4764-9e0f-27a8e3b1ffa7" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fabd534f-af8b-4b4f-9cc2-7bea31f9e014" >
+					<logger level="INFO" doc:name="Logger" doc:id="5c341755-8a35-4551-ae9b-1405b3a95beb" message="on error continue" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="Transform Message" doc:id="f9861fef-c4dd-4eb6-8233-0b82b5d1829b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.data filter($.id == vars.empid as Number)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value='#[{&#10;	"name" : "qweqew"&#10;}]' doc:name="Set Payload" doc:id="0fc97c07-ef14-4cc6-b7fa-fb156db8c0fc" />
+	</sub-flow>
+	<sub-flow name="post-employee-subFlow" doc:id="956b0808-8d85-46a6-b02e-8b46561b9d88" >
+		<ee:transform doc:name="Transform Message" doc:id="6f3cf75e-13a7-4537-9697-87d8f5228cbc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
 </mule>

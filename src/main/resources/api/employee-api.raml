@@ -1,0 +1,80 @@
+#%RAML 1.0
+
+title: Employee Error Scenario API
+description: MuleSoft API for testing error scenarios
+version: v1
+mediaType: application/json
+
+types:
+
+  Customer:
+    type: object
+    properties:
+      customerId: string
+      name: string
+      email: string
+      age: integer
+      status: string
+  
+  ErrorResponse:
+    type: object
+    properties:
+      event: string
+      message: string
+      orgId: string
+      envId: string
+      timestamp: datetime
+      appId: string
+
+/employee:
+
+  get:
+    description: Get customers using query parameters
+    queryParameters:
+      employeeId:
+        description: Filter customer by customer ID
+        type: string
+        required: true
+
+    responses:
+      200:
+        description: Customers retrieved successfully
+        body:
+          application/json:
+            type: Customer[]
+      400:
+        description: Invalid query parameter
+        body:
+          application/json:
+            type: ErrorResponse
+      500:
+        description: Internal server error
+        body:
+          application/json:
+            type: ErrorResponse
+
+  post:
+    description: Create a new customer
+
+    body:
+      application/json:
+        type: Customer
+
+    responses:
+      201:
+        description: Customer created successfully
+        body:
+          application/json:
+            type: Customer
+
+      400:
+        description: Invalid customer data
+        body:
+          application/json:
+            type: ErrorResponse
+
+      409:
+        description: Customer already exists
+        body:
+          application/json:
+            type: ErrorResponse

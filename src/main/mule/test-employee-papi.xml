@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:tracing="http://www.mulesoft.org/schema/mule/tracing"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
-http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd">
+http://www.mulesoft.org/schema/mule/tracing http://www.mulesoft.org/schema/mule/tracing/current/mule-tracing.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3eda5304-53e1-490d-83bb-113b841b3f5b" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="0294fc5a-bec5-4807-84e7-c248790973be" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="e94634a0-369e-4e0a-aa82-ddb6a53620ab" config-ref="ObjectStore_Config" />
 	<flow name="test-employee-papiFlow" doc:id="56c79976-f452-4f21-90ff-f191d73a9b1e" >
 		<http:listener doc:name="Listener" doc:id="084dbb12-d5a4-4641-9bef-11c2b0f19923" config-ref="HTTP_Listener_config" path="/getEmp">
 			<http:error-response >
@@ -28,13 +31,40 @@ uuid()]]></ee:set-variable>
 		<tracing:with-correlation-id doc:name="With CorrelationID" doc:id="0efd0803-0d85-4ade-be9f-83e1ab28ff16" correlationId="#[vars.correlationId]">
 			<try doc:name="Try" doc:id="6676e680-6f7a-4041-92fc-012828a90821" >
 				<logger level="INFO" doc:name="Logger" doc:id="08cb57f0-cbc9-42b0-8f23-f2c75504feb5" message="test-employee-papiFlow Start" />
-				<http:request method="GET" doc:name="employee-sapi" doc:id="206a645c-71fd-49d7-86fc-98c83ac7178e" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]"/>
+				<http:request method="GET" doc:name="employee-sapi" doc:id="206a645c-71fd-49d7-86fc-98c83ac7178e" config-ref="HTTP_Request_configuration" path="${employee.http.basepath}" sendCorrelationId="ALWAYS" correlationId="#[vars.correlationId]" target="empData"/>
+				<os:retrieve doc:name="Retrieve" doc:id="9d361fe5-94f5-4581-bcff-fbd79dc7ee27" key="empDetails" objectStore="Object_store" target="empDetails">
+				</os:retrieve>
+				<ee:transform doc:name="Transform Message" doc:id="f2c902bf-a73a-416c-90e4-d422164bded9" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.empDetails //map($.id)]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="store" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+    {
+        "id": 1,
+        "employee_name": "Tiger Nixon",
+        "employee_salary": 320800,
+        "employee_age": 61,
+        "profile_image": ""
+    }
+]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<!-- [STUDIO:"Store"]<os:store doc:name="Store" doc:id="4487cfef-526c-4bac-9cc7-42011fc9d5b5" key="empDetails" objectStore="Object_store">
+					<os:value ><![CDATA[#[vars.empData&#93;&#93;&#93;></os:value>
+				</os:store> [STUDIO] -->
 				<ee:transform doc:name="Transform Message" doc:id="04848326-6ce8-4be7-acbc-69a8b0a5251f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-payload.data]]></ee:set-payload>
+payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 				<logger level="INFO" doc:name="Logger" doc:id="77495d93-c8cf-4266-b042-1c3c47465be2" message="Before wait : #[now()]" />

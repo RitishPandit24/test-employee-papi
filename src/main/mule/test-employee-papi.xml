@@ -114,7 +114,7 @@ payload.data filter($.id == vars.empid as Number)]]></ee:set-payload>
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+if (payload.status? and payload.status != null) payload else payload ++ { status: "default" }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</sub-flow>
